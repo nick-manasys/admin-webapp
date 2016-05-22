@@ -1,0 +1,49 @@
+<configuration debug="true">
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-5relative %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- application log -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${catalina.home}/logs/admin-app.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%-5relative %-5level %logger{35} - %msg%n</pattern>
+      <pattern>[%d{yyyy-MM-dd HH:mm:ss}] [%level] [%thread] %logger{10} [%file:%line] %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${catalina.home}/logs/mvc/mvc.log.%d{yyyy-MM-dd}</fileNamePattern>
+      <maxHistory>10</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <!-- operations log -->
+  <!-- operations log -->
+  <appender name="OPERATIONS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${catalina.home}/logs/admin-app_operations.log</file>
+    <append>true</append>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5relative %-5level %logger{35} - %msg%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${catalina.home}/logs/admin-app/admin-app_operations.log.%d{yyyy-MM-dd}</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+  </appender>
+
+  <logger name="operations" level="INFO" additivity="false">
+    <appender-ref ref="OPERATIONS_FILE" />
+  </logger>
+
+  <logger name="org.springframework.web">
+    <level value="info" />
+    <appender-ref ref="STDOUT" />
+  </logger>
+
+  <root level="INFO">
+    <appender-ref ref="FILE" />
+    <!-- <appender-ref ref="STDOUT" /> -->
+  </root>
+</configuration>

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security" xmlns:beans="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+  <debug />
+
+  <global-method-security pre-post-annotations="enabled" />
+
+  <!-- -->
+  <!-- <http pattern="/static/**" security="none" /> <http pattern="/resources/**" security="none" /> <http pattern="/login.jsp" 
+    security="none" /> <http pattern="/loggedout.jsp" security="none" /> <http pattern="/status" security="none" /> -->
+
+  <!-- <http pattern="/**" security="none" /> <intercept-url pattern="/**" access="IS_AUTHENTICATED_ANONYMOUSLY" requires-channel="https" 
+    /> <http use-expressions="true"> <intercept-url pattern="**/login.jsp" access="permitAll" /> <intercept-url pattern="**/resources/**" 
+    access="permitAll" /> <intercept-url pattern="**/**" access="permitAll" /> --> <!-- <intercept-url pattern="/**" access="hasRole('administrator') or hasRole('user') or isAuthenticated()" /> <http> <intercept-url 
+    pattern="/listCircuits" access="IS_AUTHENTICATED_REMEMBERED" /> <http-basic /> </http> -->
+
+  <beans:bean id="webexpressionHandler" class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler" />
+
+  <http>
+  <!-- 
+    <intercept-url pattern="/listCircuits" access="IS_AUTHENTICATED_REMEMBERED" />
+   -->
+    <form-login login-page="/login.jsp" authentication-failure-url="/loggedout.jsp?error=authenticationError" />
+    <logout logout-success-url="/login.jsp" invalidate-session="true" delete-cookies="JSESSIONID" />
+    <remember-me />
+    <session-management invalid-session-url="/loggedout.jsp?error=sessionExpired"
+      session-authentication-error-url="/loggedout.jsp?error=alreadyLoggedIn">
+      <concurrency-control max-sessions="1" error-if-maximum-exceeded="false"
+        expired-url="/loggedout.jsp?error=sessionExpiredDuplicateLogin" />
+    </session-management>
+  </http>
+
+  <beans:bean id="encoder" class="org.springframework.security.crypto.password.StandardPasswordEncoder" />
+
+  <!-- LDAP configured in container -->
+  <!-- <ldap-server url="ldap://10.200.203.116:389/ou=ConvergentSystemsManagementZone,ou=Apps,o=AUTH_VAULT" /> <authentication-manager> 
+    <ldap-authentication-provider user-dn-pattern="cn={0},ou=Users,o=AUTH_VAULT" /> </authentication-manager> -->
+
+  <authentication-manager>
+    <authentication-provider>
+      <!-- <password-encoder ref="encoder" /> -->
+      <user-service>
+        <user name="admin" password="admin2" authorities="administrator, user, manager-gui, manager" />
+        <user name="nick" password="nick" authorities="administrator, user" />
+        <user name="user" password="user" authorities="user" />
+      </user-service>
+    </authentication-provider>
+  </authentication-manager>
+
+  <authentication-manager alias="authenticationManager">
+    <authentication-provider ref="preAuthenticatedAuthenticationProvider" />
+  </authentication-manager>
+
+  <beans:bean id="preAuthenticatedAuthenticationProvider"
+    class="org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationProvider">
+    <beans:property name="preAuthenticatedUserDetailsService" ref="preAuthenticatedUserDetailsService" />
+  </beans:bean>
+
+  <beans:bean id="preAuthenticatedUserDetailsService"
+    class="org.springframework.security.web.authentication.preauth.PreAuthenticatedGrantedAuthoritiesUserDetailsService" />
+
+  <beans:bean id="filterChainProxy" class="org.springframework.security.web.FilterChainProxy">
+    <filter-chain-map path-type="ant">
+      <filter-chain pattern="/mvc/**" filters="sif,j2eePreAuthFilter,logoutFilter,etf,fsi" />
+    </filter-chain-map>
+  </beans:bean>
+
+  <beans:bean id="sif" class="org.springframework.security.web.context.SecurityContextPersistenceFilter" />
+
+  <beans:bean id="j2eePreAuthFilter"
+    class="org.springframework.security.web.authentication.preauth.j2ee.J2eePreAuthenticatedProcessingFilter">
+    <beans:property name="authenticationManager" ref="authenticationManager" />
+    <beans:property name="authenticationDetailsSource">
+      <beans:bean
+        class="org.springframework.security.web.authentication.preauth.j2ee.J2eeBasedPreAuthenticatedWebAuthenticationDetailsSource">
+        <beans:property name="mappableRolesRetriever">
+          <beans:bean class="org.springframework.security.web.authentication.preauth.j2ee.WebXmlMappableAttributesRetriever" />
+        </beans:property>
+        <beans:property name="userRoles2GrantedAuthoritiesMapper">
+          <beans:bean class="org.springframework.security.core.authority.mapping.SimpleAttributes2GrantedAuthoritiesMapper">
+            <beans:property name="convertAttributeToUpperCase" value="true" />
+          </beans:bean>
+        </beans:property>
+      </beans:bean>
+    </beans:property>
+  </beans:bean>
+
+  <beans:bean id="logoutFilter" class="org.springframework.security.web.authentication.logout.LogoutFilter">
+
+    <beans:constructor-arg value="/" />
+    <beans:constructor-arg>
+      <beans:list>
+        <beans:bean class="org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler" />
+      </beans:list>
+    </beans:constructor-arg>
+  </beans:bean>
+
+  <beans:bean id="preAuthenticatedProcessingFilterEntryPoint" class="org.springframework.security.web.authentication.Http403ForbiddenEntryPoint" />
+
+
+  <beans:bean id="etf" class="org.springframework.security.web.access.ExceptionTranslationFilter">
+    <beans:property name="authenticationEntryPoint" ref="preAuthenticatedProcessingFilterEntryPoint" />
+  </beans:bean>
+
+  <beans:bean id="roleVoter" class="org.springframework.security.access.vote.RoleVoter" />
+
+
+  <beans:bean id="httpRequestAccessDecisionManager" class="org.springframework.security.access.vote.AffirmativeBased">
+    <beans:property name="allowIfAllAbstainDecisions" value="false" />
+    <beans:property name="decisionVoters">
+      <beans:list>
+        <beans:ref bean="roleVoter" />
+      </beans:list>
+    </beans:property>
+  </beans:bean>
+
+  <beans:bean id="fsi" class="org.springframework.security.web.access.intercept.FilterSecurityInterceptor">
+    <beans:property name="authenticationManager" ref="authenticationManager" />
+    <beans:property name="accessDecisionManager" ref="httpRequestAccessDecisionManager" />
+    <beans:property name="securityMetadataSource">
+      <filter-invocation-definition-source>
+        <intercept-url pattern="/secure/extreme/**" access="ROLE_SUPERVISOR" />
+        <intercept-url pattern="/secure/**" access="ROLE_USER" />
+        <intercept-url pattern="/mvc/**" access="ROLE_USER" />
+        <!-- 
+        <intercept-url pattern="/**" access="permitAll" />
+         -->
+      </filter-invocation-definition-source>
+    </beans:property>
+  </beans:bean>
+</beans:beans>

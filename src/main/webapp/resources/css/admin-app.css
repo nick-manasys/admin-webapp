@@ -1,0 +1,92 @@
+* {
+	font: Verdana, Arial, 'sans-serif' !important; /* <-- fonts */
+}
+
+.error {
+	color: red;
+}
+
+.ui-dialog-titlebar {
+	background-color: #e60000;
+	background-image: none;
+	color: #ffffff;
+}
+
+.list-container {
+	width: 98%;
+	height: 60%;
+	margin-right: 25px; #
+	width: 800px;
+	margin-right: 25px;
+}
+
+.dev-selection-header {
+	float: left;
+	height: 40px;
+	width: 100%;
+}
+
+.button-header {
+	float: right;
+	height: 40px; #
+	width: 800px;
+}
+
+.submit-button { #
+	position: absolute; #
+	right: 101%; #
+	overflow: hidden;
+}
+
+.list-content {
+	border: solid 2px;
+	height: 60%;
+	width: 100%; #
+	width: 775px;
+	float: left;
+	overflow: auto;
+	padding: 10px;
+}
+
+.new-circuit-content {
+	border: solid 2px;
+	height: 400px;
+	width: 775px;
+	float: left;
+	padding: 10px;
+}
+
+.new-circuit-table {
+	width: 100%
+}
+
+.button-footer {
+	float: left;
+	height: 30px;
+	width: 795px;
+	padding: 5px;
+}
+
+.form-buttons {
+	height: 130px;
+	width: 795px;
+	position: relative;
+}
+
+.form-button {
+	position: absolute;
+	bottom: 10px;
+}
+
+.hidden {
+	position: absolute !important;
+	top: -9999px !important;
+	left: -9999px !important;
+}
+
+.log-line {
+	display: block;
+	text-align: left;
+	white-space: nowrap;
+	background-color: #AAAAAA;
+}
